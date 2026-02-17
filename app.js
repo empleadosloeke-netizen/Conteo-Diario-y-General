@@ -1,3 +1,5 @@
+// app.js (SIN el mapeo). Requiere planimetria.js con: window.PLANIMETRIA_MAP = {...}
+
 (function () {
   const APP_SCRIPT_URL =
     "https://script.google.com/macros/s/AKfycbzksNcQMoLHl_fDpA5LJXRL7Cm6sgWpoyRXt4xASVefhVgXiSX2AJ_7mNU5UJ0ufdcI/exec";
@@ -12,90 +14,103 @@
     return String(v ?? "").replace(/[^\d]/g, "");
   }
 
-  function showOverlay(on) {
-    $("overlay").style.display = on ? "flex" : "none";
+  function showOverlay(on, title = "Enviando…", sub = "Guardando en Google Sheet") {
+    const o = $("overlay");
+    if (!o) return;
+    const t1 = $("overlayTitle");
+    const t2 = $("overlaySub");
+    if (t1) t1.textContent = title;
+    if (t2) t2.textContent = sub;
+    o.style.display = on ? "flex" : "none";
   }
 
-  function show(section) {
-    const ids = ["home", "daily1", "daily2", "daily3", "general", "generalPage"];
-    ids.forEach((id) => {
+  function hideAll() {
+    ["home", "tab1", "tab2", "tab3", "gTracker", "gSheet"].forEach((id) => {
       const el = $(id);
-      if (!el) return;
-      el.style.display = id === section ? "" : "none";
+      if (el) el.style.display = "none";
     });
   }
-
-  async function postJSON(payload) {
-    // OJO: usamos no-cors para que funcione desde GitHub Pages sin CORS.
-    // Esto impide leer respuesta real en muchos navegadores.
-    // Si necesitás leer respuesta (para status/reserve), lo ideal es que el Apps Script
-    // devuelva CORS y usar mode:"cors". Por ahora lo hacemos "best effort":
-    try {
-      const res = await fetch(APP_SCRIPT_URL, {
-        method: "POST",
-        mode: "cors",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify(payload),
-      });
-      // Si CORS está habilitado en tu Apps Script, esto funciona:
-      const txt = await res.text();
-      try {
-        return JSON.parse(txt);
-      } catch {
-        return { ok: true, raw: txt };
-      }
-    } catch (e) {
-      // fallback: igual enviamos no-cors (no podremos leer respuesta)
-      await fetch(APP_SCRIPT_URL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify(payload),
-      });
-      return { ok: true, note: "no-cors (sin respuesta)" };
-    }
+  function show(id) {
+    hideAll();
+    const el = $(id);
+    if (el) el.style.display = "";
   }
 
-  // ========= HOME =========
-  $("goDaily").addEventListener("click", () => show("daily1"));
-  $("goGeneral").addEventListener("click", () => show("general"));
-  $("homeFromDaily1").addEventListener("click", () => show("home"));
-  $("homeFromGeneral").addEventListener("click", () => show("home"));
+  // ---------- HOME ----------
+  if ($("goDaily")) $("goDaily").addEventListener("click", () => show("tab1"));
+  if ($("goGeneral")) $("goGeneral").addEventListener("click", () => show("gTracker"));
 
-  // ========= DIARIO =========
-  const DAILY = { legajo: "", codes: [], rows: [], fills: {}, resumen: {} };
+  // =========================
+  // DIARIO
+  // =========================
+  function setStatus() {
+    const leg = onlyDigits($("legajo")?.value).slice(0, 3);
+    const c1 = normalizeCode($("cod1")?.value).slice(0, 4);
+    const c2 = normalizeCode($("cod2")?.value).slice(0, 4);
+    const cnt = [c1, c2].filter(Boolean).length;
+    const pill = $("statusPill");
+    if (pill) pill.textContent = leg ? `Legajo ${leg} · ${cnt} código(s)` : "Sin datos";
+  }
+
+  const STATE = { legajo: "", codes: [], rows: [], fills: {}, resumen: {} };
+
   function rowKey(r) {
     return `${r.orden}|${r.sector}|${r.codArt}`;
   }
 
-  $("legajo").addEventListener("input", () => {
-    $("legajo").value = onlyDigits($("legajo").value).slice(0, 3);
-  });
-  $("cod1").addEventListener("input", () => {
-    $("cod1").value = normalizeCode($("cod1").value).slice(0, 4);
-  });
-  $("cod2").addEventListener("input", () => {
-    $("cod2").value = normalizeCode($("cod2").value).slice(0, 4);
-  });
+  function buildSelect(min, max, selectedValue) {
+    const sel = document.createElement("select");
+    const opt0 = document.createElement("option");
+    opt0.value = "";
+    opt0.textContent = "—";
+    sel.appendChild(opt0);
+    for (let i = min; i <= max; i++) {
+      const opt = document.createElement("option");
+      opt.value = String(i);
+      opt.textContent = String(i);
+      if (String(i) === String(selectedValue)) opt.selected = true;
+      sel.appendChild(opt);
+    }
+    return sel;
+  }
 
-  function parseDailyTab1() {
-    const legajo = onlyDigits($("legajo").value).slice(0, 3);
-    const cod1 = normalizeCode($("cod1").value).slice(0, 4);
-    const cod2 = normalizeCode($("cod2").value).slice(0, 4);
+  function calcTotal(pilas, cxp, sueltas) {
+    const P = parseInt(pilas || "0", 10);
+    const C = parseInt(cxp || "0", 10);
+    const S = parseInt(sueltas || "0", 10);
+    return P * C + S;
+  }
 
-    $("msg1").textContent = "";
-    $("msg1").className = "msg";
+  function parseTab1() {
+    const legajo = onlyDigits($("legajo")?.value).slice(0, 3);
+    const c1 = normalizeCode($("cod1")?.value).slice(0, 4);
+    const c2 = normalizeCode($("cod2")?.value).slice(0, 4);
+
+    const msg1 = $("msg1");
+    const msg1b = $("msg1b");
+    if (msg1) {
+      msg1.textContent = "";
+      msg1.className = "msg";
+    }
+    if (msg1b) {
+      msg1b.textContent = "";
+      msg1b.className = "msg";
+    }
 
     if (!legajo) {
-      $("msg1").textContent = "Ingresá el legajo.";
-      $("msg1").classList.add("error");
+      if (msg1) {
+        msg1.textContent = "Ingresá el legajo.";
+        msg1.classList.add("error");
+      }
       return null;
     }
 
-    const codes = [cod1, cod2].filter(Boolean);
+    const codes = [c1, c2].filter(Boolean);
     if (!codes.length) {
-      $("msg1").textContent = "Ingresá al menos 1 código.";
-      $("msg1").classList.add("error");
+      if (msg1) {
+        msg1.textContent = "Ingresá al menos 1 código.";
+        msg1.classList.add("error");
+      }
       return null;
     }
 
@@ -113,6 +128,7 @@
           });
         }
       } else {
+        // si no está mapeado, lo mostramos al final
         rows.push({ orden: 999999, sector: "SIN MAPEO", codArt: code });
       }
     }
@@ -127,72 +143,54 @@
     return { legajo, codes: uniq, rows };
   }
 
-  function buildSelect(min, max, selected) {
-    const sel = document.createElement("select");
-    const o0 = document.createElement("option");
-    o0.value = "";
-    o0.textContent = "—";
-    sel.appendChild(o0);
-
-    for (let i = min; i <= max; i++) {
-      const o = document.createElement("option");
-      o.value = String(i);
-      o.textContent = String(i);
-      if (String(i) === String(selected)) o.selected = true;
-      sel.appendChild(o);
-    }
-    return sel;
-  }
-
-  function calcTotal(pilas, cxp, sueltas) {
-    const P = parseInt(pilas || "0", 10);
-    const C = parseInt(cxp || "0", 10);
-    const S = parseInt(sueltas || "0", 10);
-    return P * C + S;
-  }
-
-  function renderDailyTab2() {
-    show("daily2");
-    $("legajoLine").textContent = "Legajo: " + DAILY.legajo;
+  function renderTab2() {
+    const line = $("legajoLine");
+    const pill = $("countPill");
+    if (line) line.textContent = "Legajo: " + STATE.legajo;
+    if (pill) pill.textContent = `${STATE.rows.length} filas`;
 
     const tbody = $("tbody");
+    if (!tbody) return;
     tbody.innerHTML = "";
 
-    for (const r of DAILY.rows) {
+    for (const r of STATE.rows) {
       const key = rowKey(r);
-      if (!DAILY.fills[key])
-        DAILY.fills[key] = { pilas: "", cjasXPila: "", cjasSueltas: "" };
+      if (!STATE.fills[key]) STATE.fills[key] = { pilas: "", cjasXPila: "", cjasSueltas: "" };
 
       const tr = document.createElement("tr");
 
       const tdSec = document.createElement("td");
+      tdSec.className = "colSector";
       tdSec.textContent = r.sector;
 
       const tdCod = document.createElement("td");
+      tdCod.className = "colCod";
       tdCod.textContent = r.codArt;
 
       const tdP = document.createElement("td");
-      const selP = buildSelect(1, 30, DAILY.fills[key].pilas);
-      selP.addEventListener("change", () => (DAILY.fills[key].pilas = selP.value));
+      tdP.className = "colPilas compact";
+      const selP = buildSelect(1, 30, STATE.fills[key].pilas);
+      selP.addEventListener("change", () => (STATE.fills[key].pilas = selP.value));
+      tdP.appendChild(selP);
 
       const tdC = document.createElement("td");
-      const selC = buildSelect(1, 10, DAILY.fills[key].cjasXPila);
-      selC.addEventListener("change", () => (DAILY.fills[key].cjasXPila = selC.value));
+      tdC.className = "colCxp compact";
+      const selC = buildSelect(1, 10, STATE.fills[key].cjasXPila);
+      selC.addEventListener("change", () => (STATE.fills[key].cjasXPila = selC.value));
+      tdC.appendChild(selC);
 
       const tdS = document.createElement("td");
+      tdS.className = "colSueltas compact";
       const inpS = document.createElement("input");
       inpS.type = "tel";
       inpS.inputMode = "numeric";
       inpS.maxLength = 2;
       inpS.placeholder = "0";
-      inpS.value = DAILY.fills[key].cjasSueltas || "";
+      inpS.value = STATE.fills[key].cjasSueltas || "";
       inpS.addEventListener("input", () => {
         inpS.value = onlyDigits(inpS.value).slice(0, 2);
-        DAILY.fills[key].cjasSueltas = inpS.value;
+        STATE.fills[key].cjasSueltas = inpS.value;
       });
-
-      tdP.appendChild(selP);
-      tdC.appendChild(selC);
       tdS.appendChild(inpS);
 
       tr.appendChild(tdSec);
@@ -205,23 +203,26 @@
     }
   }
 
-  function renderDailyTab3() {
-    show("daily3");
-    $("legajoLine3").textContent = "Legajo: " + DAILY.legajo;
+  function renderTab3() {
+    const line = $("legajoLine3");
+    const pill = $("countPill3");
+    if (line) line.textContent = "Legajo: " + STATE.legajo;
+    if (pill) pill.textContent = `${STATE.codes.length} códigos`;
 
     const tbody = $("tbody3");
+    if (!tbody) return;
     tbody.innerHTML = "";
 
-    for (const code of DAILY.codes) {
-      if (!DAILY.resumen[code])
-        DAILY.resumen[code] = { pickings: "", pfc: "", transito: "" };
+    for (const code of STATE.codes) {
+      if (!STATE.resumen[code]) STATE.resumen[code] = { pickings: "", pfc: "", transito: "" };
 
       const tr = document.createElement("tr");
 
       const tdCod = document.createElement("td");
+      tdCod.className = "colCod3";
       tdCod.textContent = code;
 
-      const mkInput = (val) => {
+      const mkInput3 = (val) => {
         const inp = document.createElement("input");
         inp.type = "tel";
         inp.inputMode = "numeric";
@@ -232,28 +233,30 @@
       };
 
       const tdPA = document.createElement("td");
-      const inpPA = mkInput(DAILY.resumen[code].pickings);
+      tdPA.className = "colPA compact";
+      const inpPA = mkInput3(STATE.resumen[code].pickings);
       inpPA.addEventListener("input", () => {
         inpPA.value = onlyDigits(inpPA.value).slice(0, 3);
-        DAILY.resumen[code].pickings = inpPA.value;
+        STATE.resumen[code].pickings = inpPA.value;
       });
+      tdPA.appendChild(inpPA);
 
       const tdPFC = document.createElement("td");
-      const inpPFC = mkInput(DAILY.resumen[code].pfc);
+      tdPFC.className = "colPFC compact";
+      const inpPFC = mkInput3(STATE.resumen[code].pfc);
       inpPFC.addEventListener("input", () => {
         inpPFC.value = onlyDigits(inpPFC.value).slice(0, 3);
-        DAILY.resumen[code].pfc = inpPFC.value;
+        STATE.resumen[code].pfc = inpPFC.value;
       });
+      tdPFC.appendChild(inpPFC);
 
       const tdMT = document.createElement("td");
-      const inpMT = mkInput(DAILY.resumen[code].transito);
+      tdMT.className = "colMT compact";
+      const inpMT = mkInput3(STATE.resumen[code].transito);
       inpMT.addEventListener("input", () => {
         inpMT.value = onlyDigits(inpMT.value).slice(0, 3);
-        DAILY.resumen[code].transito = inpMT.value;
+        STATE.resumen[code].transito = inpMT.value;
       });
-
-      tdPA.appendChild(inpPA);
-      tdPFC.appendChild(inpPFC);
       tdMT.appendChild(inpMT);
 
       tr.appendChild(tdCod);
@@ -266,11 +269,10 @@
   }
 
   function buildDailyPayload() {
-    const paso2Rows = DAILY.rows.map((r) => {
+    const paso2Rows = STATE.rows.map((r) => {
       const key = rowKey(r);
-      const f = DAILY.fills[key] || {};
+      const f = STATE.fills[key] || {};
       const total = calcTotal(f.pilas, f.cjasXPila, f.cjasSueltas);
-
       return {
         orden: r.orden === 999999 ? "" : r.orden,
         sector: r.sector,
@@ -283,104 +285,189 @@
       };
     });
 
-    const paso3Rows = DAILY.codes.map((code) => ({
+    const paso3Rows = STATE.codes.map((code) => ({
       codArt: code,
-      pickingsArmados: DAILY.resumen[code]?.pickings ?? "",
-      pedidosParaFC: DAILY.resumen[code]?.pfc ?? "",
-      mercaderiaEnTransito: DAILY.resumen[code]?.transito ?? "",
+      pickingsArmados: STATE.resumen[code]?.pickings ?? "",
+      pedidosParaFC: STATE.resumen[code]?.pfc ?? "",
+      mercaderiaEnTransito: STATE.resumen[code]?.transito ?? "",
     }));
 
     return {
       kind: "daily_final",
       ts: new Date().toISOString(),
-      legajo: DAILY.legajo,
+      legajo: STATE.legajo,
       paso2Rows,
       paso3Rows,
     };
   }
 
-  async function sendDaily() {
-    $("msg3").textContent = "";
-    $("msg3").className = "msg";
-    showOverlay(true);
-
-    await fetch(APP_SCRIPT_URL, {
-      method: "POST",
-      mode: "no-cors",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify(buildDailyPayload()),
-    });
-
-    setTimeout(() => {
-      showOverlay(false);
-      resetDaily();
-      show("home");
-    }, 700);
-  }
-
-  function resetDaily() {
-    $("legajo").value = "";
-    $("cod1").value = "";
-    $("cod2").value = "";
-    $("msg1").textContent = "";
-    $("msg3").textContent = "";
-    DAILY.legajo = "";
-    DAILY.codes = [];
-    DAILY.rows = [];
-    DAILY.fills = {};
-    DAILY.resumen = {};
-  }
-
-  $("siguienteBtn").addEventListener("click", () => {
-    const parsed = parseDailyTab1();
-    if (!parsed) return;
-
-    DAILY.legajo = parsed.legajo;
-    DAILY.codes = parsed.codes;
-    DAILY.rows = parsed.rows;
-    DAILY.fills = {};
-    DAILY.resumen = {};
-    renderDailyTab2();
-  });
-
-  $("volverBtn").addEventListener("click", () => show("daily1"));
-  $("irPaso3Btn").addEventListener("click", () => renderDailyTab3());
-  $("volverBtn3").addEventListener("click", () => show("daily2"));
-  $("resetFillsBtn").addEventListener("click", () => renderDailyTab2());
-  $("enviarFinalBtn").addEventListener("click", () => sendDaily());
-
-  // ========= GENERAL (tracker + hojas) =========
-  const GEN = {
-    conteoId: "",
-    legajo: "",
-    pageSize: 30,
-    lists: { sin: [], con: [] },
-    current: { rol: "", sheetIndex: -1, ubicaciones: [] },
-    status: { sin: [], con: [] }, // "pendiente" | "en_curso" | "terminado"
-  };
-
-  function isConEscalera(L, n) {
-    if (L === "A") {
-      const r = (n - 1) % 5;
-      return r === 3 || r === 4;
+  async function sendDailyFinal() {
+    const msg = $("msg3");
+    if (msg) {
+      msg.textContent = "";
+      msg.className = "msg";
     }
-    const r = (n - 1) % 4;
-    return r === 3;
-  }
 
-  function genAllUbicaciones() {
-    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
-    const maxN = 100; // AJUSTAR a tu depósito real
-    const out = [];
-    for (const L of letters) {
-      for (let n = 1; n <= maxN; n++) {
-        out.push({
-          ubicacion: `${L}${n}`,
-          rol: isConEscalera(L, n) ? "con" : "sin",
-        });
+    try {
+      showOverlay(true, "Enviando…", "Guardando todo (Paso 2 + Paso 3)");
+      await fetch(APP_SCRIPT_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(buildDailyPayload()),
+      });
+      await new Promise((r) => setTimeout(r, 700));
+      showOverlay(false);
+      resetAll();
+      show("home");
+    } catch (e) {
+      showOverlay(false);
+      if (msg) {
+        msg.textContent = "Error enviando: " + (e?.message || e);
+        msg.classList.add("error");
       }
     }
-    return out;
+  }
+
+  function resetAll() {
+    if ($("legajo")) $("legajo").value = "";
+    if ($("cod1")) $("cod1").value = "";
+    if ($("cod2")) $("cod2").value = "";
+
+    ["msg1", "msg1b", "msgSend", "msg3"].forEach((id) => {
+      const el = $(id);
+      if (el) {
+        el.textContent = "";
+        el.className = "msg";
+      }
+    });
+
+    STATE.legajo = "";
+    STATE.codes = [];
+    STATE.rows = [];
+    STATE.fills = {};
+    STATE.resumen = {};
+
+    setStatus();
+    show("tab1");
+    $("legajo")?.focus?.();
+  }
+
+  // Eventos Diario
+  $("legajo")?.addEventListener("input", () => {
+    $("legajo").value = onlyDigits($("legajo").value).slice(0, 3);
+    setStatus();
+  });
+  $("cod1")?.addEventListener("input", () => {
+    $("cod1").value = normalizeCode($("cod1").value).slice(0, 4);
+    setStatus();
+  });
+  $("cod2")?.addEventListener("input", () => {
+    $("cod2").value = normalizeCode($("cod2").value).slice(0, 4);
+    setStatus();
+  });
+
+  $("limpiarBtn")?.addEventListener("click", resetAll);
+
+  $("siguienteBtn")?.addEventListener("click", () => {
+    const parsed = parseTab1();
+    if (!parsed) return;
+    STATE.legajo = parsed.legajo;
+    STATE.codes = parsed.codes;
+    STATE.rows = parsed.rows;
+    STATE.fills = {};
+    STATE.resumen = {};
+    renderTab2();
+    show("tab2");
+  });
+
+  $("volverBtn")?.addEventListener("click", () => show("tab1"));
+
+  $("resetFillsBtn")?.addEventListener("click", () => {
+    for (const k of Object.keys(STATE.fills)) {
+      STATE.fills[k] = { pilas: "", cjasXPila: "", cjasSueltas: "" };
+    }
+    renderTab2();
+    const m = $("msgSend");
+    if (m) {
+      m.textContent = "Reseteado.";
+      m.className = "msg ok";
+    }
+  });
+
+  $("irPaso3Btn")?.addEventListener("click", () => {
+    renderTab3();
+    show("tab3");
+  });
+
+  $("volverBtn3")?.addEventListener("click", () => show("tab2"));
+
+  $("reset3Btn")?.addEventListener("click", () => {
+    for (const c of STATE.codes) STATE.resumen[c] = { pickings: "", pfc: "", transito: "" };
+    renderTab3();
+    const m = $("msg3");
+    if (m) {
+      m.textContent = "Reseteado.";
+      m.className = "msg ok";
+    }
+  });
+
+  $("enviarFinalBtn")?.addEventListener("click", sendDailyFinal);
+
+  // =========================
+  // CONTEO GENERAL (SOLO usa sectores reales de la planimetría)
+  // =========================
+  const GEN = {
+    pageSize: 30,
+    conteoId: "",
+    legajo: "",
+    lists: { sin: [], con: [] },  // pages de sectores (strings)
+    status: { sin: [], con: [] }, // pendiente/en_curso/terminado
+    current: { rol: "", idx: -1, page: [] },
+  };
+
+  // Regla escalera sobre SECTOR real (A tiene 5, resto 4)
+  function isConEscaleraFromSector(sectorStr) {
+    const s = String(sectorStr || "").trim().toUpperCase();
+    const m = s.match(/^([A-Z])\s*(\d+)$/);
+    if (!m) return false;
+    const letter = m[1];
+    const n = parseInt(m[2], 10);
+    if (!Number.isFinite(n)) return false;
+
+    if (letter === "A") {
+      const r = (n - 1) % 5;
+      return r === 3 || r === 4; // 4 y 5 con escalera
+    }
+    const r = (n - 1) % 4;
+    return r === 3; // 4 con escalera
+  }
+
+  function getAllSectorsFromPlanimetria() {
+    const set = new Set();
+    for (const cod of Object.keys(MAP)) {
+      const arr = MAP[cod];
+      if (!Array.isArray(arr)) continue;
+      for (const it of arr) {
+        const sec = String(it?.sector || "").trim();
+        if (sec) set.add(sec);
+      }
+    }
+    return Array.from(set);
+  }
+
+  function sortSectorsNatural(a, b) {
+    const A = String(a).toUpperCase();
+    const B = String(b).toUpperCase();
+    const ma = A.match(/^([A-Z])\s*(\d+)$/);
+    const mb = B.match(/^([A-Z])\s*(\d+)$/);
+    if (ma && mb) {
+      if (ma[1] !== mb[1]) return ma[1].localeCompare(mb[1]);
+      return parseInt(ma[2], 10) - parseInt(mb[2], 10);
+    }
+    if (ma && !mb) return -1;
+    if (!ma && mb) return 1;
+    return A.localeCompare(B);
   }
 
   function chunk(arr, size) {
@@ -389,52 +476,73 @@
     return out;
   }
 
-  function ensureGeneralListsBuilt() {
-    const all = genAllUbicaciones();
-    GEN.lists.sin = chunk(all.filter((x) => x.rol === "sin"), GEN.pageSize);
-    GEN.lists.con = chunk(all.filter((x) => x.rol === "con"), GEN.pageSize);
+  function ensureGeneralLists() {
+    const sectors = getAllSectorsFromPlanimetria().sort(sortSectorsNatural);
 
-    // default statuses si todavía no tenemos del server
+    const sin = [];
+    const con = [];
+    for (const sec of sectors) {
+      if (isConEscaleraFromSector(sec)) con.push(sec);
+      else sin.push(sec);
+    }
+
+    GEN.lists.sin = chunk(sin, GEN.pageSize);
+    GEN.lists.con = chunk(con, GEN.pageSize);
+
+    // inicializa si estaba vacío
     if (!GEN.status.sin.length) GEN.status.sin = Array(GEN.lists.sin.length).fill("pendiente");
     if (!GEN.status.con.length) GEN.status.con = Array(GEN.lists.con.length).fill("pendiente");
   }
 
-  function badgeFor(st) {
+  function badge(st) {
     if (st === "terminado") return "✅";
     if (st === "en_curso") return "⏳";
     return "⬜";
   }
 
+  async function postJSONRead(payload) {
+    // Para leer estado/reserva necesitamos CORS en Apps Script
+    const res = await fetch(APP_SCRIPT_URL, {
+      method: "POST",
+      mode: "cors",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(payload),
+    });
+    const txt = await res.text();
+    try { return JSON.parse(txt); }
+    catch { return { ok: false, error: "Respuesta no JSON", raw: txt }; }
+  }
+
   function renderTracker() {
     const sinBox = $("g_list_sin");
     const conBox = $("g_list_con");
+    if (!sinBox || !conBox) return;
+
     sinBox.innerHTML = "";
     conBox.innerHTML = "";
 
-    const renderList = (rol, box) => {
-      const list = GEN.lists[rol];
-      const stArr = GEN.status[rol] || [];
+    const countDone = (arr) => arr.filter((s) => s === "terminado").length;
+    if ($("g_sinPill")) $("g_sinPill").textContent = `${countDone(GEN.status.sin)}/${GEN.status.sin.length}`;
+    if ($("g_conPill")) $("g_conPill").textContent = `${countDone(GEN.status.con)}/${GEN.status.con.length}`;
 
-      list.forEach((page, idx) => {
-        const st = stArr[idx] || "pendiente";
+    const renderList = (rol, box) => {
+      GEN.lists[rol].forEach((page, idx) => {
+        const st = GEN.status[rol][idx] || "pendiente";
         const div = document.createElement("div");
-        div.className = "trackerRow";
+        div.className = "trackerRow" + (st !== "pendiente" ? " disabled" : "");
+
+        const first = page[0] || "—";
+        const last = page[page.length - 1] || "—";
+
         div.innerHTML = `
-          <div class="trackerLeft">
-            <div class="trackerTitle">Hoja ${idx + 1}</div>
-            <div class="trackerSub">${page[0].ubicacion} … ${page[page.length - 1].ubicacion}</div>
+          <div class="left">
+            <div class="name">Hoja ${idx + 1}</div>
+            <div class="sub">${first} … ${last}</div>
           </div>
-          <div class="trackerRight">${badgeFor(st)}</div>
+          <div class="badge">${badge(st)}</div>
         `;
 
-        // solo permite abrir si NO está terminada.
-        // si está en_curso, lo dejamos bloqueado (para evitar doble conteo).
-        if (st === "pendiente") {
-          div.addEventListener("click", () => openGeneralSheet(rol, idx));
-        } else {
-          div.style.opacity = "0.65";
-        }
-
+        if (st === "pendiente") div.addEventListener("click", () => openSheet(rol, idx));
         box.appendChild(div);
       });
     };
@@ -443,179 +551,179 @@
     renderList("con", conBox);
   }
 
-  async function loadStatusFromServer() {
-    // Requiere Apps Script con kind="general_status"
-    // Respuesta esperada:
-    // { ok:true, sin:["pendiente"...], con:["pendiente"...] }
-    const resp = await postJSON({
-      kind: "general_status",
-      conteoId: GEN.conteoId,
-    });
-
-    if (resp && resp.ok && Array.isArray(resp.sin) && Array.isArray(resp.con)) {
-      GEN.status.sin = resp.sin;
-      GEN.status.con = resp.con;
+  async function loadStatus() {
+    const m = $("g_msg");
+    if (m) {
+      m.textContent = "";
+      m.className = "msg";
     }
-  }
 
-  async function reserveSheetOnServer(rol, sheetIndex) {
-    // Requiere Apps Script con kind="general_reserve"
-    // Respuesta esperada:
-    // { ok:true, status:"en_curso" } o { ok:false, error:"..." }
-    const resp = await postJSON({
-      kind: "general_reserve",
-      conteoId: GEN.conteoId,
-      legajo: GEN.legajo,
-      rol,
-      sheetIndex,
-    });
+    GEN.legajo = onlyDigits($("g_legajo")?.value).slice(0, 3);
+    GEN.conteoId = normalizeCode($("g_conteoId")?.value).slice(0, 16);
 
-    // si no pudimos leer respuesta (no-cors), igual avanzamos "optimista"
-    if (!resp) return { ok: true };
-    return resp;
-  }
-
-  async function openGeneralSheet(rol, sheetIndex) {
-    $("g_msg").textContent = "";
-    $("g_msg").className = "msg";
-
-    // reservar (para poner relojito y bloquear)
-    showOverlay(true);
-    const r = await reserveSheetOnServer(rol, sheetIndex);
-    showOverlay(false);
-
-    if (r && r.ok === false) {
-      $("g_msg").textContent = r.error || "No se puede abrir esa hoja.";
-      $("g_msg").className = "msg error";
+    if (!GEN.legajo) {
+      if (m) { m.textContent = "Ingresá legajo."; m.classList.add("error"); }
+      return;
+    }
+    if (!GEN.conteoId) {
+      if (m) { m.textContent = "Ingresá ID Conteo."; m.classList.add("error"); }
       return;
     }
 
-    // marcar local como en curso
-    GEN.status[rol][sheetIndex] = "en_curso";
-    renderTracker();
+    ensureGeneralLists();
 
-    GEN.current.rol = rol;
-    GEN.current.sheetIndex = sheetIndex;
-    GEN.current.ubicaciones = GEN.lists[rol][sheetIndex];
+    try {
+      showOverlay(true, "Cargando…", "Leyendo estado del conteo");
+      const resp = await postJSONRead({ kind: "general_status", conteoId: GEN.conteoId });
+      showOverlay(false);
 
-    renderGeneralPage();
-    show("generalPage");
+      if (!resp || !resp.ok) {
+        if (m) { m.textContent = resp?.error || "No pude leer el estado (CORS)."; m.classList.add("error"); }
+        renderTracker(); // igual muestra pendiente
+        return;
+      }
+
+      // Si el Apps Script devuelve arrays, los uso.
+      if (Array.isArray(resp.sin)) GEN.status.sin = resp.sin;
+      if (Array.isArray(resp.con)) GEN.status.con = resp.con;
+
+      renderTracker();
+      if (m) { m.textContent = "Listo."; m.className = "msg ok"; }
+    } catch (e) {
+      showOverlay(false);
+      if (m) {
+        m.textContent = "No pude leer estado (revisar CORS en Apps Script).";
+        m.classList.add("error");
+      }
+      renderTracker();
+    }
   }
 
-  function renderGeneralPage() {
-    const rol = GEN.current.rol;
-    const idx = GEN.current.sheetIndex;
-    const page = GEN.current.ubicaciones;
+  async function openSheet(rol, idx) {
+    const m = $("g_msg");
+    if (m) { m.textContent = ""; m.className = "msg"; }
 
-    $("g_title").textContent = `${rol === "sin" ? "Sin escalera" : "Con escalera"} · Hoja ${idx + 1}`;
-    $("g_progress").textContent = `${idx + 1}/${GEN.lists[rol].length}`;
+    try {
+      showOverlay(true, "Reservando…", "Marcando hoja en curso");
+      const r = await postJSONRead({
+        kind: "general_reserve",
+        conteoId: GEN.conteoId,
+        legajo: GEN.legajo,
+        rol,
+        sheetIndex: idx,
+      });
+      showOverlay(false);
 
-    const tbody = $("g_tbody");
-    tbody.innerHTML = "";
+      if (!r || !r.ok) {
+        if (m) { m.textContent = r?.error || "No se pudo reservar."; m.classList.add("error"); }
+        return;
+      }
 
-    page.forEach((u) => {
+      GEN.status[rol][idx] = "en_curso";
+      renderTracker();
+
+      GEN.current = { rol, idx, page: GEN.lists[rol][idx] };
+      renderGSheet();
+      show("gSheet");
+    } catch (e) {
+      showOverlay(false);
+      if (m) {
+        m.textContent = "No se pudo reservar (revisar CORS en Apps Script).";
+        m.classList.add("error");
+      }
+    }
+  }
+
+  function renderGSheet() {
+    const { rol, idx, page } = GEN.current;
+
+    if ($("g_title")) $("g_title").textContent = `${rol === "sin" ? "Sin escalera" : "Con escalera"} · Hoja ${idx + 1}`;
+    if ($("g_sub")) $("g_sub").textContent = `Legajo ${GEN.legajo} · Conteo ${GEN.conteoId}`;
+    if ($("g_progress")) $("g_progress").textContent = `${idx + 1}/${GEN.lists[rol].length}`;
+
+    const tb = $("g_tbody");
+    if (!tb) return;
+    tb.innerHTML = "";
+
+    page.forEach((sec) => {
       const tr = document.createElement("tr");
 
       const tdU = document.createElement("td");
-      tdU.textContent = u.ubicacion;
+      tdU.textContent = sec;
 
       const tdC = document.createElement("td");
+      tdC.className = "compact";
       const inp = document.createElement("input");
       inp.type = "tel";
       inp.inputMode = "numeric";
       inp.maxLength = 4;
       inp.placeholder = "0";
-      inp.id = "g_" + u.ubicacion;
-      inp.addEventListener("input", () => {
-        inp.value = onlyDigits(inp.value).slice(0, 4);
-      });
-
+      inp.id = "g_" + sec;
+      inp.addEventListener("input", () => (inp.value = onlyDigits(inp.value).slice(0, 4)));
       tdC.appendChild(inp);
+
       tr.appendChild(tdU);
       tr.appendChild(tdC);
-      tbody.appendChild(tr);
+      tb.appendChild(tr);
     });
   }
 
-  async function sendGeneralSheet() {
-    $("g_msg2").textContent = "";
-    $("g_msg2").className = "msg";
+  function resetGSheetInputs() {
+    GEN.current.page.forEach((sec) => {
+      const el = document.getElementById("g_" + sec);
+      if (el) el.value = "";
+    });
+    const m = $("g_msg2");
+    if (m) { m.textContent = "Reseteado."; m.className = "msg ok"; }
+  }
 
-    const rol = GEN.current.rol;
-    const sheetIndex = GEN.current.sheetIndex;
-    const page = GEN.current.ubicaciones;
+  async function sendGSheet() {
+    const m = $("g_msg2");
+    if (m) { m.textContent = ""; m.className = "msg"; }
 
-    const rows = page.map((u) => ({
-      ubicacion: u.ubicacion,
-      cantidad: onlyDigits((document.getElementById("g_" + u.ubicacion)?.value || "0")),
+    const { rol, idx, page } = GEN.current;
+    const rows = page.map((sec) => ({
+      ubicacion: sec,
+      cantidad: onlyDigits(document.getElementById("g_" + sec)?.value || "0"),
     }));
 
-    const payload = {
-      kind: "general_page",
-      ts: new Date().toISOString(),
-      conteoId: GEN.conteoId,
-      legajo: GEN.legajo,
-      rol,
-      pageIndex: sheetIndex,
-      pageSize: GEN.pageSize,
-      rows,
-    };
+    try {
+      showOverlay(true, "Enviando…", "Guardando hoja del conteo general");
+      await fetch(APP_SCRIPT_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({
+          kind: "general_page",
+          ts: new Date().toISOString(),
+          conteoId: GEN.conteoId,
+          legajo: GEN.legajo,
+          rol,
+          pageIndex: idx,
+          pageSize: GEN.pageSize,
+          rows,
+        }),
+      });
 
-    showOverlay(true);
-    await fetch(APP_SCRIPT_URL, {
-      method: "POST",
-      mode: "no-cors",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify(payload),
-    });
-    showOverlay(false);
+      await new Promise((r) => setTimeout(r, 700));
+      showOverlay(false);
 
-    // marcar terminada localmente y volver al tracker
-    GEN.status[rol][sheetIndex] = "terminado";
-    renderTracker();
-    show("general");
-  }
-
-  function initGeneralFromInputs() {
-    GEN.legajo = onlyDigits($("g_legajo").value).slice(0, 3);
-    GEN.conteoId = String($("g_conteoId").value || "").trim();
-  }
-
-  async function loadGeneralTracker() {
-    initGeneralFromInputs();
-
-    if (!GEN.legajo) {
-      $("g_msg").textContent = "Ingresá legajo.";
-      $("g_msg").className = "msg error";
-      return;
+      GEN.status[rol][idx] = "terminado";
+      renderTracker();
+      show("gTracker");
+    } catch (e) {
+      showOverlay(false);
+      if (m) { m.textContent = "Error enviando."; m.classList.add("error"); }
     }
-    if (!GEN.conteoId) {
-      $("g_msg").textContent = "Ingresá ID Conteo.";
-      $("g_msg").className = "msg error";
-      return;
-    }
-
-    ensureGeneralListsBuilt();
-
-    // intentar traer estado real del server
-    showOverlay(true);
-    await loadStatusFromServer();
-    showOverlay(false);
-
-    renderTracker();
-    $("g_msg").textContent = "Listo.";
-    $("g_msg").className = "msg ok";
   }
 
-  $("g_load").addEventListener("click", loadGeneralTracker);
-
-  $("g_back").addEventListener("click", () => {
-    // volver al tracker
-    show("general");
-  });
-
-  $("g_send").addEventListener("click", sendGeneralSheet);
+  $("g_backHome")?.addEventListener("click", () => show("home"));
+  $("g_load")?.addEventListener("click", loadStatus);
+  $("g_backTracker")?.addEventListener("click", () => show("gTracker"));
+  $("g_reset")?.addEventListener("click", resetGSheetInputs);
+  $("g_send")?.addEventListener("click", sendGSheet);
 
   // init
+  setStatus();
   show("home");
 })();
