@@ -241,9 +241,8 @@ tbody tr:last-child td{border-bottom:0}
 .overlayText .t1{font-weight:900;}
 .overlayText .t2{color:var(--muted); font-size:12px; margin-top:2px;}
 
-/* Tracker general */
-.trackerBlock{margin-top:6px}
-.trackerTitleRow{display:flex; align-items:center; justify-content:space-between; gap:10px;}
+/* Tracker */
+.trackerTitleRow{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:6px;}
 .trackerTitleRow .t1{font-weight:900; font-size:13px;}
 
 .trackerList{display:flex; flex-direction:column; gap:8px; margin-top:8px;}
@@ -255,11 +254,11 @@ tbody tr:last-child td{border-bottom:0}
   display:flex;
   align-items:center;
   justify-content:space-between;
-  gap:12px;
+  gap:10px;              /* más corto */
   cursor:pointer;
 }
 .trackerRow .left{min-width:0}
 .trackerRow .name{font-weight:900; font-size:13px;}
 .trackerRow .sub{font-size:12px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-.trackerRow .badge{font-size:18px;}
+.trackerRow .badge{font-size:18px; margin-left:8px;}  /* más pegado */
 .trackerRow.disabled{opacity:.55; cursor:default;}
