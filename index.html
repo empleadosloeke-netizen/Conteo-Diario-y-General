@@ -153,7 +153,7 @@
         <div class="cardHeader">
           <div>
             <div class="title">Conteo general</div>
-            <div class="hint">Cargar estado y elegir hoja (⏳ en curso / ✅ terminado)</div>
+            <div class="hint">Elegí fecha, cargá estado y elegí si contás con o sin escalera</div>
           </div>
           <div class="pill" id="gPill">Tracker</div>
         </div>
@@ -167,8 +167,8 @@
               </div>
 
               <div class="bigField">
-                <label for="g_conteoId">ID Conteo</label>
-                <input id="g_conteoId" class="codeInput" type="text" maxlength="16" placeholder="CG-2026-02-17" autocomplete="off" />
+                <label for="g_fecha">Fecha conteo</label>
+                <input id="g_fecha" type="date" />
               </div>
             </div>
 
@@ -177,18 +177,17 @@
               <button class="btn" id="g_load" type="button">Cargar estado</button>
             </div>
 
-            <div class="trackerBlock">
-              <div class="trackerTitleRow">
-                <div class="t1">Sin escalera</div>
-                <div class="pill" id="g_sinPill">—</div>
-              </div>
-              <div id="g_list_sin" class="trackerList"></div>
+            <div class="actions" style="justify-content:flex-start;">
+              <button class="btn" id="g_rol_sin" type="button">Voy a contar SIN escalera</button>
+              <button class="btn" id="g_rol_con" type="button">Voy a contar CON escalera</button>
+            </div>
 
-              <div class="trackerTitleRow" style="margin-top:12px;">
-                <div class="t1">Con escalera</div>
-                <div class="pill" id="g_conPill">—</div>
+            <div id="g_lists_wrap" style="display:none;">
+              <div class="trackerTitleRow">
+                <div class="t1" id="g_list_title">—</div>
+                <div class="pill" id="g_list_pill">—</div>
               </div>
-              <div id="g_list_con" class="trackerList"></div>
+              <div id="g_list" class="trackerList"></div>
             </div>
 
             <div class="msg" id="g_msg"></div>
