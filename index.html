@@ -3,149 +3,250 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Conteos</title>
+  <title>Planilla Conteo Cajas</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
+
 <body>
+  <div class="page">
+    <div class="wrap">
 
-<div class="wrap">
+      <!-- HOME -->
+      <section class="card" id="home">
+        <div class="cardHeader">
+          <div>
+            <div class="title">Conteos</div>
+            <div class="hint">Elegí el tipo de conteo</div>
+          </div>
+          <div class="pill" id="homePill">Loekemeyer</div>
+        </div>
+        <div class="cardBody">
+          <div class="actions">
+            <button class="btn" id="goDaily" type="button">Conteo diario</button>
+            <button class="btn secondary" id="goGeneral" type="button">Conteo general</button>
+          </div>
+          <div class="msg" id="homeMsg"></div>
+        </div>
+      </section>
 
-  <!-- ================= HOME ================= -->
-  <section id="home" class="card">
-    <h2>Conteos</h2>
-    <button id="goDaily" class="btn" type="button">Conteo diario</button>
-    <button id="goGeneral" class="btn secondary" type="button">Conteo general</button>
-  </section>
+      <!-- =========================
+           DIARIO
+      ========================== -->
 
-  <!-- ================= DIARIO PASO 1 ================= -->
-  <section id="daily1" class="card" style="display:none">
-    <h3>Diario · Cargar códigos</h3>
+      <!-- TAB 1 -->
+      <section class="card" id="tab1" style="display:none;">
+        <div class="cardHeader">
+          <div>
+            <div class="title">1) Cargar</div>
+            <div class="hint">Legajo (3 dígitos) + 2 códigos (hasta 4 caracteres). Mantiene 0 adelante (ej: 066).</div>
+          </div>
+          <div class="pill" id="statusPill">Sin datos</div>
+        </div>
 
-    <label>Legajo</label>
-    <input id="legajo" maxlength="3" class="big" inputmode="numeric" type="tel" placeholder="000">
+        <div class="cardBody">
+          <div class="grid">
+            <div class="bigInputsRow">
+              <div class="bigField">
+                <label for="legajo">Legajo</label>
+                <input id="legajo" class="legajoInput" inputmode="numeric" type="tel" maxlength="3" placeholder="000" />
+              </div>
 
-    <label>Código 1</label>
-    <input id="cod1" maxlength="4" class="big" type="text" placeholder="0000" autocomplete="off">
+              <div class="bigField">
+                <label for="cod1">Código 1</label>
+                <input id="cod1" class="codeInput" type="text" maxlength="4" placeholder="0000" autocomplete="off" />
+              </div>
 
-    <label>Código 2</label>
-    <input id="cod2" maxlength="4" class="big" type="text" placeholder="0000" autocomplete="off">
+              <div class="bigField">
+                <label for="cod2">Código 2</label>
+                <input id="cod2" class="codeInput" type="text" maxlength="4" placeholder="0000" autocomplete="off" />
+              </div>
+            </div>
 
-    <button id="siguienteBtn" class="btn" type="button">Siguiente</button>
-    <button id="homeFromDaily1" class="btn secondary" type="button">Volver</button>
+            <div class="actions">
+              <button class="btn secondary" id="limpiarBtn" type="button">Limpiar</button>
+              <button class="btn" id="siguienteBtn" type="button">Siguiente</button>
+            </div>
 
-    <div id="msg1" class="msg"></div>
-  </section>
+            <div class="msg" id="msg1"></div>
+            <div class="msg" id="msg1b"></div>
+          </div>
+        </div>
+      </section>
 
-  <!-- ================= DIARIO PASO 2 ================= -->
-  <section id="daily2" style="display:none">
-    <div class="topbar">
-      <button id="volverBtn" type="button">←</button>
-      <span id="legajoLine"></span>
+      <!-- TAB 2 -->
+      <section id="tab2" style="display:none;">
+        <div class="backBar">
+          <button class="backBtn" id="volverBtn" type="button" aria-label="Volver">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <div class="backText">
+            <div class="t1">2) Completar</div>
+            <div class="t2" id="legajoLine">Legajo: —</div>
+          </div>
+          <div style="margin-left:auto" class="pill" id="countPill">0 filas</div>
+        </div>
+
+        <div class="tableWrap">
+          <table>
+            <thead>
+              <tr>
+                <th class="colSector">Sector</th>
+                <th class="colCod">Cod</th>
+                <th class="colPilas">Pilas</th>
+                <th class="colCxp">Cjas<br>x Pila</th>
+                <th class="colSueltas">Cjas<br>Sueltas</th>
+              </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+
+        <div class="actions" style="margin-top:10px;">
+          <button class="btn secondary" id="resetFillsBtn" type="button">Reset</button>
+          <button class="btn" id="irPaso3Btn" type="button">Siguiente</button>
+        </div>
+        <div class="msg" id="msgSend"></div>
+      </section>
+
+      <!-- TAB 3 -->
+      <section id="tab3" style="display:none;">
+        <div class="backBar">
+          <button class="backBtn" id="volverBtn3" type="button" aria-label="Volver">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <div class="backText">
+            <div class="t1">3) Cajas por Código</div>
+            <div class="t2" id="legajoLine3">Legajo: —</div>
+          </div>
+          <div style="margin-left:auto" class="pill" id="countPill3">0 códigos</div>
+        </div>
+
+        <div class="tableWrap">
+          <table>
+            <thead>
+              <tr>
+                <th class="colCod3">Cod</th>
+                <th class="colPA">Pickings<br>Armados</th>
+                <th class="colPFC">Pedidos<br>para FC</th>
+                <th class="colMT">Mercadería<br>en Tránsito</th>
+              </tr>
+            </thead>
+            <tbody id="tbody3"></tbody>
+          </table>
+        </div>
+
+        <div class="actions" style="margin-top:10px;">
+          <button class="btn secondary" id="reset3Btn" type="button">Reset</button>
+          <button class="btn" id="enviarFinalBtn" type="button">Enviar</button>
+        </div>
+        <div class="msg" id="msg3"></div>
+      </section>
+
+      <!-- =========================
+           CONTEO GENERAL - TRACKER
+      ========================== -->
+      <section class="card" id="gTracker" style="display:none;">
+        <div class="cardHeader">
+          <div>
+            <div class="title">Conteo general</div>
+            <div class="hint">Cargar estado y elegir hoja (⏳ en curso / ✅ terminado)</div>
+          </div>
+          <div class="pill" id="gPill">Tracker</div>
+        </div>
+
+        <div class="cardBody">
+          <div class="grid">
+            <div class="bigInputsRow">
+              <div class="bigField">
+                <label for="g_legajo">Legajo</label>
+                <input id="g_legajo" class="legajoInput" inputmode="numeric" type="tel" maxlength="3" placeholder="000" />
+              </div>
+
+              <div class="bigField">
+                <label for="g_conteoId">ID Conteo</label>
+                <input id="g_conteoId" class="codeInput" type="text" maxlength="16" placeholder="CG-2026-02-17" autocomplete="off" />
+              </div>
+            </div>
+
+            <div class="actions">
+              <button class="btn secondary" id="g_backHome" type="button">Volver</button>
+              <button class="btn" id="g_load" type="button">Cargar estado</button>
+            </div>
+
+            <div class="trackerBlock">
+              <div class="trackerTitleRow">
+                <div class="t1">Sin escalera</div>
+                <div class="pill" id="g_sinPill">—</div>
+              </div>
+              <div id="g_list_sin" class="trackerList"></div>
+
+              <div class="trackerTitleRow" style="margin-top:12px;">
+                <div class="t1">Con escalera</div>
+                <div class="pill" id="g_conPill">—</div>
+              </div>
+              <div id="g_list_con" class="trackerList"></div>
+            </div>
+
+            <div class="msg" id="g_msg"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================
+           CONTEO GENERAL - HOJA (30 filas)
+      ========================== -->
+      <section id="gSheet" style="display:none;">
+        <div class="backBar">
+          <button class="backBtn" id="g_backTracker" type="button" aria-label="Volver">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <div class="backText">
+            <div class="t1" id="g_title">Hoja</div>
+            <div class="t2" id="g_sub">—</div>
+          </div>
+          <div style="margin-left:auto" class="pill" id="g_progress">—</div>
+        </div>
+
+        <div class="tableWrap">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:55%;">Ubicación</th>
+                <th style="width:45%;">Cantidad</th>
+              </tr>
+            </thead>
+            <tbody id="g_tbody"></tbody>
+          </table>
+        </div>
+
+        <div class="actions" style="margin-top:10px;">
+          <button class="btn secondary" id="g_reset" type="button">Reset</button>
+          <button class="btn" id="g_send" type="button">Enviar hoja</button>
+        </div>
+        <div class="msg" id="g_msg2"></div>
+      </section>
+
     </div>
+  </div>
 
-    <div class="tableWrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Sector</th>
-            <th>Cod</th>
-            <th>Pilas</th>
-            <th>Cjas<br>x Pila</th>
-            <th>Cjas<br>Sueltas</th>
-          </tr>
-        </thead>
-        <tbody id="tbody"></tbody>
-      </table>
+  <!-- Overlay cargando -->
+  <div class="overlay" id="overlay">
+    <div class="overlayCard">
+      <div class="spinner" aria-hidden="true"></div>
+      <div class="overlayText">
+        <div class="t1" id="overlayTitle">Enviando…</div>
+        <div class="t2" id="overlaySub">Guardando en Google Sheet</div>
+      </div>
     </div>
+  </div>
 
-    <button id="irPaso3Btn" class="btn" type="button">Siguiente</button>
-    <button id="resetFillsBtn" class="btn secondary" type="button">Reset</button>
-  </section>
-
-  <!-- ================= DIARIO PASO 3 ================= -->
-  <section id="daily3" style="display:none">
-    <div class="topbar">
-      <button id="volverBtn3" type="button">←</button>
-      <span id="legajoLine3"></span>
-    </div>
-
-    <div class="tableWrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Cod</th>
-            <th>Pickings</th>
-            <th>Pedidos FC</th>
-            <th>Tránsito</th>
-          </tr>
-        </thead>
-        <tbody id="tbody3"></tbody>
-      </table>
-    </div>
-
-    <button id="enviarFinalBtn" class="btn" type="button">Enviar</button>
-    <div id="msg3" class="msg"></div>
-  </section>
-
-  <!-- ================= GENERAL TRACKER (nuevo) ================= -->
-  <section id="general" class="card" style="display:none">
-    <h3>Conteo general</h3>
-
-    <label>Legajo</label>
-    <input id="g_legajo" maxlength="3" class="big" inputmode="numeric" type="tel" placeholder="000">
-
-    <label>ID Conteo</label>
-    <input id="g_conteoId" class="big" type="text" placeholder="CG-2026-02-17">
-
-    <div class="actionsRow">
-      <button id="homeFromGeneral" class="btn secondary" type="button">Volver</button>
-      <button id="g_load" class="btn" type="button">Cargar estado</button>
-    </div>
-
-    <div class="trackerBox">
-      <h4>Sin escalera</h4>
-      <div id="g_list_sin" class="trackerList"></div>
-
-      <h4>Con escalera</h4>
-      <div id="g_list_con" class="trackerList"></div>
-    </div>
-
-    <div id="g_msg" class="msg"></div>
-  </section>
-
-  <!-- ================= GENERAL PAGINA ================= -->
-  <section id="generalPage" style="display:none">
-    <div class="topbar">
-      <button id="g_back" type="button">←</button>
-      <span id="g_title"></span>
-      <span id="g_progress" class="pill" style="margin-left:auto;"></span>
-    </div>
-
-    <div class="tableWrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Ubicación</th>
-            <th>Cantidad</th>
-          </tr>
-        </thead>
-        <tbody id="g_tbody"></tbody>
-      </table>
-    </div>
-
-    <button id="g_send" class="btn" type="button">Enviar hoja</button>
-    <div id="g_msg2" class="msg"></div>
-  </section>
-
-</div>
-
-<!-- overlay -->
-<div id="overlay" class="overlay" style="display:none">
-  <div class="loader"></div>
-</div>
-
-<script src="planimetria.js"></script>
-<script src="app.js"></script>
-
+  <script src="planimetria.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
