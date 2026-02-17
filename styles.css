@@ -1,0 +1,227 @@
+/* styles.css - Mobile first */
+
+:root{
+  --bg:#f5f5f5;
+  --card:#ffffff;
+  --text:#111;
+  --muted:#666;
+  --line:#e6e6e6;
+  --btn:#111;
+  --btn2:#fff;
+  --radius:12px;
+}
+
+*{ box-sizing:border-box; }
+body{
+  margin:0;
+  background:var(--bg);
+  font-family: Arial, Helvetica, sans-serif;
+  color:var(--text);
+}
+
+.wrap{
+  max-width:520px;
+  margin:0 auto;
+  padding:12px;
+}
+
+.card{
+  background:var(--card);
+  border-radius:var(--radius);
+  padding:14px;
+  box-shadow:0 1px 6px rgba(0,0,0,.06);
+  margin-bottom:12px;
+}
+
+h2,h3,h4{ margin:0 0 10px 0; }
+label{
+  display:block;
+  font-size:14px;
+  color:var(--muted);
+  margin:10px 0 6px;
+}
+
+input, select{
+  width:100%;
+  padding:12px 12px;
+  border:1px solid var(--line);
+  border-radius:10px;
+  font-size:18px;
+  outline:none;
+  background:#fff;
+}
+
+.big{ font-size:22px; padding:14px; }
+
+.btn{
+  width:100%;
+  border:none;
+  border-radius:12px;
+  padding:14px 16px;
+  font-size:18px;
+  background:var(--btn);
+  color:#fff;
+  cursor:pointer;
+  margin-top:10px;
+}
+.btn.secondary{
+  background:#fff;
+  color:#111;
+  border:1px solid var(--line);
+}
+
+.actionsRow{
+  display:flex;
+  gap:10px;
+}
+.actionsRow .btn{ margin-top:10px; }
+
+/* topbar for steps */
+.topbar{
+  position:sticky;
+  top:0;
+  z-index:5;
+  background:var(--bg);
+  padding:8px 0;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.topbar button{
+  width:44px;
+  height:44px;
+  border-radius:12px;
+  border:1px solid var(--line);
+  background:#fff;
+  font-size:20px;
+}
+.topbar span{
+  font-size:16px;
+  color:var(--muted);
+}
+
+/* tables */
+.tableWrap{
+  overflow-x:hidden;
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:12px;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  table-layout:fixed;
+}
+
+thead th{
+  position:sticky;
+  top:52px; /* below topbar */
+  z-index:4;
+  background:#fafafa;
+  border-bottom:1px solid var(--line);
+  font-size:12px;
+  color:var(--muted);
+  padding:8px 6px;
+  text-align:left;
+  line-height:1.1;
+}
+
+tbody td{
+  border-bottom:1px solid var(--line);
+  padding:8px 6px;
+  font-size:14px;
+  vertical-align:middle;
+}
+
+tbody td input, tbody td select{
+  width:100%;
+  padding:10px 8px;
+  font-size:16px;
+  border-radius:10px;
+}
+
+/* messages */
+.msg{
+  margin-top:10px;
+  font-size:14px;
+  color:var(--muted);
+}
+.msg.error{ color:#b00020; }
+.msg.ok{ color:#0b6b0b; }
+
+/* tracker */
+.trackerBox{
+  margin-top:10px;
+  border-top:1px solid var(--line);
+  padding-top:10px;
+}
+.trackerList{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  margin-bottom:14px;
+}
+
+.trackerRow{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:10px 12px;
+  background:#fff;
+  cursor:pointer;
+}
+.trackerLeft{
+  min-width:0;
+}
+.trackerTitle{
+  font-size:16px;
+  font-weight:700;
+}
+.trackerSub{
+  font-size:12px;
+  color:var(--muted);
+  margin-top:2px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  max-width:360px;
+}
+.trackerRight{
+  font-size:18px;
+  width:34px;
+  text-align:right;
+}
+
+/* small pill */
+.pill{
+  display:inline-block;
+  padding:6px 10px;
+  border-radius:999px;
+  border:1px solid var(--line);
+  background:#fff;
+  font-size:12px;
+  color:var(--muted);
+}
+
+/* overlay loading */
+.overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.25);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:100;
+}
+.loader{
+  width:54px;
+  height:54px;
+  border-radius:50%;
+  border:6px solid rgba(255,255,255,.5);
+  border-top-color:#fff;
+  animation:spin 1s linear infinite;
+}
+@keyframes spin{ to{ transform:rotate(360deg);} }
