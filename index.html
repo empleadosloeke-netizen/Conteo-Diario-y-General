@@ -1,151 +1,147 @@
 <!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Conteos</title>
-<link rel="stylesheet" href="styles.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Conteos</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
-
 <body>
 
 <div class="wrap">
 
-<!-- ================= HOME ================= -->
-<section id="home" class="card">
-<h2>Conteos</h2>
-<button id="goDaily" class="btn">Conteo diario</button>
-<button id="goGeneral" class="btn secondary">Conteo general</button>
-</section>
+  <!-- ================= HOME ================= -->
+  <section id="home" class="card">
+    <h2>Conteos</h2>
+    <button id="goDaily" class="btn" type="button">Conteo diario</button>
+    <button id="goGeneral" class="btn secondary" type="button">Conteo general</button>
+  </section>
 
+  <!-- ================= DIARIO PASO 1 ================= -->
+  <section id="daily1" class="card" style="display:none">
+    <h3>Diario · Cargar códigos</h3>
 
-<!-- ================= DIARIO PASO 1 ================= -->
-<section id="daily1" class="card" style="display:none">
+    <label>Legajo</label>
+    <input id="legajo" maxlength="3" class="big" inputmode="numeric" type="tel" placeholder="000">
 
-<h3>Cargar códigos</h3>
+    <label>Código 1</label>
+    <input id="cod1" maxlength="4" class="big" type="text" placeholder="0000" autocomplete="off">
 
-<label>Legajo</label>
-<input id="legajo" maxlength="3" class="big">
+    <label>Código 2</label>
+    <input id="cod2" maxlength="4" class="big" type="text" placeholder="0000" autocomplete="off">
 
-<label>Código 1</label>
-<input id="cod1" maxlength="4" class="big">
+    <button id="siguienteBtn" class="btn" type="button">Siguiente</button>
+    <button id="homeFromDaily1" class="btn secondary" type="button">Volver</button>
 
-<label>Código 2</label>
-<input id="cod2" maxlength="4" class="big">
+    <div id="msg1" class="msg"></div>
+  </section>
 
-<button id="siguienteBtn" class="btn">Siguiente</button>
-<button id="homeFromDaily1" class="btn secondary">Volver</button>
+  <!-- ================= DIARIO PASO 2 ================= -->
+  <section id="daily2" style="display:none">
+    <div class="topbar">
+      <button id="volverBtn" type="button">←</button>
+      <span id="legajoLine"></span>
+    </div>
 
-<div id="msg1" class="msg"></div>
+    <div class="tableWrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Sector</th>
+            <th>Cod</th>
+            <th>Pilas</th>
+            <th>Cjas<br>x Pila</th>
+            <th>Cjas<br>Sueltas</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
 
-</section>
+    <button id="irPaso3Btn" class="btn" type="button">Siguiente</button>
+    <button id="resetFillsBtn" class="btn secondary" type="button">Reset</button>
+  </section>
 
+  <!-- ================= DIARIO PASO 3 ================= -->
+  <section id="daily3" style="display:none">
+    <div class="topbar">
+      <button id="volverBtn3" type="button">←</button>
+      <span id="legajoLine3"></span>
+    </div>
 
-<!-- ================= DIARIO PASO 2 ================= -->
-<section id="daily2" style="display:none">
+    <div class="tableWrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Cod</th>
+            <th>Pickings</th>
+            <th>Pedidos FC</th>
+            <th>Tránsito</th>
+          </tr>
+        </thead>
+        <tbody id="tbody3"></tbody>
+      </table>
+    </div>
 
-<div class="topbar">
-<button id="volverBtn">←</button>
-<span id="legajoLine"></span>
-</div>
+    <button id="enviarFinalBtn" class="btn" type="button">Enviar</button>
+    <div id="msg3" class="msg"></div>
+  </section>
 
-<table>
-<thead>
-<tr>
-<th>Sector</th>
-<th>Cod</th>
-<th>Pilas</th>
-<th>Cjas x Pila</th>
-<th>Cjas Sueltas</th>
-</tr>
-</thead>
-<tbody id="tbody"></tbody>
-</table>
+  <!-- ================= GENERAL TRACKER (nuevo) ================= -->
+  <section id="general" class="card" style="display:none">
+    <h3>Conteo general</h3>
 
-<button id="irPaso3Btn" class="btn">Siguiente</button>
-<button id="resetFillsBtn" class="btn secondary">Reset</button>
+    <label>Legajo</label>
+    <input id="g_legajo" maxlength="3" class="big" inputmode="numeric" type="tel" placeholder="000">
 
-</section>
+    <label>ID Conteo</label>
+    <input id="g_conteoId" class="big" type="text" placeholder="CG-2026-02-17">
 
+    <div class="actionsRow">
+      <button id="homeFromGeneral" class="btn secondary" type="button">Volver</button>
+      <button id="g_load" class="btn" type="button">Cargar estado</button>
+    </div>
 
-<!-- ================= DIARIO PASO 3 ================= -->
-<section id="daily3" style="display:none">
+    <div class="trackerBox">
+      <h4>Sin escalera</h4>
+      <div id="g_list_sin" class="trackerList"></div>
 
-<div class="topbar">
-<button id="volverBtn3">←</button>
-<span id="legajoLine3"></span>
-</div>
+      <h4>Con escalera</h4>
+      <div id="g_list_con" class="trackerList"></div>
+    </div>
 
-<table>
-<thead>
-<tr>
-<th>Cod</th>
-<th>Pickings</th>
-<th>Pedidos FC</th>
-<th>Tránsito</th>
-</tr>
-</thead>
-<tbody id="tbody3"></tbody>
-</table>
+    <div id="g_msg" class="msg"></div>
+  </section>
 
-<button id="enviarFinalBtn" class="btn">Enviar</button>
+  <!-- ================= GENERAL PAGINA ================= -->
+  <section id="generalPage" style="display:none">
+    <div class="topbar">
+      <button id="g_back" type="button">←</button>
+      <span id="g_title"></span>
+      <span id="g_progress" class="pill" style="margin-left:auto;"></span>
+    </div>
 
-<div id="msg3" class="msg"></div>
+    <div class="tableWrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Ubicación</th>
+            <th>Cantidad</th>
+          </tr>
+        </thead>
+        <tbody id="g_tbody"></tbody>
+      </table>
+    </div>
 
-</section>
-
-
-<!-- ================= GENERAL CONFIG ================= -->
-<section id="general" class="card" style="display:none">
-
-<h3>Conteo general</h3>
-
-<label>Legajo</label>
-<input id="g_legajo" maxlength="3" class="big">
-
-<label>Rol</label>
-<select id="g_rol">
-<option value="sin">Sin escalera</option>
-<option value="con">Con escalera</option>
-</select>
-
-<label>ID Conteo</label>
-<input id="g_conteoId" placeholder="CG-001">
-
-<button id="g_start" class="btn">Empezar</button>
-<button id="homeFromGeneral" class="btn secondary">Volver</button>
-
-</section>
-
-
-<!-- ================= GENERAL PAGINA ================= -->
-<section id="generalPage" style="display:none">
-
-<div class="topbar">
-<button id="g_back">←</button>
-<span id="g_title"></span>
-</div>
-
-<table>
-<thead>
-<tr>
-<th>Ubicación</th>
-<th>Cantidad</th>
-</tr>
-</thead>
-<tbody id="g_tbody"></tbody>
-</table>
-
-<button id="g_send" class="btn">Enviar página</button>
-
-</section>
-
+    <button id="g_send" class="btn" type="button">Enviar hoja</button>
+    <div id="g_msg2" class="msg"></div>
+  </section>
 
 </div>
 
 <!-- overlay -->
-<div id="overlay" class="overlay">
-<div class="loader"></div>
+<div id="overlay" class="overlay" style="display:none">
+  <div class="loader"></div>
 </div>
 
 <script src="planimetria.js"></script>
