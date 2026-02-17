@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Conteos</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+<div class="wrap">
+
+<!-- ================= HOME ================= -->
+<section id="home" class="card">
+<h2>Conteos</h2>
+<button id="goDaily" class="btn">Conteo diario</button>
+<button id="goGeneral" class="btn secondary">Conteo general</button>
+</section>
+
+
+<!-- ================= DIARIO PASO 1 ================= -->
+<section id="daily1" class="card" style="display:none">
+
+<h3>Cargar códigos</h3>
+
+<label>Legajo</label>
+<input id="legajo" maxlength="3" class="big">
+
+<label>Código 1</label>
+<input id="cod1" maxlength="4" class="big">
+
+<label>Código 2</label>
+<input id="cod2" maxlength="4" class="big">
+
+<button id="siguienteBtn" class="btn">Siguiente</button>
+<button id="homeFromDaily1" class="btn secondary">Volver</button>
+
+<div id="msg1" class="msg"></div>
+
+</section>
+
+
+<!-- ================= DIARIO PASO 2 ================= -->
+<section id="daily2" style="display:none">
+
+<div class="topbar">
+<button id="volverBtn">←</button>
+<span id="legajoLine"></span>
+</div>
+
+<table>
+<thead>
+<tr>
+<th>Sector</th>
+<th>Cod</th>
+<th>Pilas</th>
+<th>Cjas x Pila</th>
+<th>Cjas Sueltas</th>
+</tr>
+</thead>
+<tbody id="tbody"></tbody>
+</table>
+
+<button id="irPaso3Btn" class="btn">Siguiente</button>
+<button id="resetFillsBtn" class="btn secondary">Reset</button>
+
+</section>
+
+
+<!-- ================= DIARIO PASO 3 ================= -->
+<section id="daily3" style="display:none">
+
+<div class="topbar">
+<button id="volverBtn3">←</button>
+<span id="legajoLine3"></span>
+</div>
+
+<table>
+<thead>
+<tr>
+<th>Cod</th>
+<th>Pickings</th>
+<th>Pedidos FC</th>
+<th>Tránsito</th>
+</tr>
+</thead>
+<tbody id="tbody3"></tbody>
+</table>
+
+<button id="enviarFinalBtn" class="btn">Enviar</button>
+
+<div id="msg3" class="msg"></div>
+
+</section>
+
+
+<!-- ================= GENERAL CONFIG ================= -->
+<section id="general" class="card" style="display:none">
+
+<h3>Conteo general</h3>
+
+<label>Legajo</label>
+<input id="g_legajo" maxlength="3" class="big">
+
+<label>Rol</label>
+<select id="g_rol">
+<option value="sin">Sin escalera</option>
+<option value="con">Con escalera</option>
+</select>
+
+<label>ID Conteo</label>
+<input id="g_conteoId" placeholder="CG-001">
+
+<button id="g_start" class="btn">Empezar</button>
+<button id="homeFromGeneral" class="btn secondary">Volver</button>
+
+</section>
+
+
+<!-- ================= GENERAL PAGINA ================= -->
+<section id="generalPage" style="display:none">
+
+<div class="topbar">
+<button id="g_back">←</button>
+<span id="g_title"></span>
+</div>
+
+<table>
+<thead>
+<tr>
+<th>Ubicación</th>
+<th>Cantidad</th>
+</tr>
+</thead>
+<tbody id="g_tbody"></tbody>
+</table>
+
+<button id="g_send" class="btn">Enviar página</button>
+
+</section>
+
+
+</div>
+
+<!-- overlay -->
+<div id="overlay" class="overlay">
+<div class="loader"></div>
+</div>
+
+<script src="planimetria.js"></script>
+<script src="app.js"></script>
+
+</body>
+</html>
