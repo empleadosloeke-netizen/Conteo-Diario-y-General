@@ -1,5 +1,4 @@
 // app.js (SIN el mapeo). Requiere planimetria.js con: window.PLANIMETRIA_MAP = {...}
-
 (function () {
   const APP_SCRIPT_URL =
     "https://script.google.com/macros/s/AKfycbzksNcQMoLHl_fDpA5LJXRL7Cm6sgWpoyRXt4xASVefhVgXiSX2AJ_7mNU5UJ0ufdcI/exec";
@@ -36,9 +35,9 @@
     if (el) el.style.display = "";
   }
 
-  // ---------- HOME ----------
-  if ($("goDaily")) $("goDaily").addEventListener("click", () => show("tab1"));
-  if ($("goGeneral")) $("goGeneral").addEventListener("click", () => show("gTracker"));
+  // HOME
+  $("goDaily")?.addEventListener("click", () => show("tab1"));
+  $("goGeneral")?.addEventListener("click", () => show("gTracker"));
 
   // =========================
   // DIARIO
@@ -54,9 +53,7 @@
 
   const STATE = { legajo: "", codes: [], rows: [], fills: {}, resumen: {} };
 
-  function rowKey(r) {
-    return `${r.orden}|${r.sector}|${r.codArt}`;
-  }
+  function rowKey(r) { return `${r.orden}|${r.sector}|${r.codArt}`; }
 
   function buildSelect(min, max, selectedValue) {
     const sel = document.createElement("select");
@@ -88,29 +85,16 @@
 
     const msg1 = $("msg1");
     const msg1b = $("msg1b");
-    if (msg1) {
-      msg1.textContent = "";
-      msg1.className = "msg";
-    }
-    if (msg1b) {
-      msg1b.textContent = "";
-      msg1b.className = "msg";
-    }
+    if (msg1) { msg1.textContent = ""; msg1.className = "msg"; }
+    if (msg1b) { msg1b.textContent = ""; msg1b.className = "msg"; }
 
     if (!legajo) {
-      if (msg1) {
-        msg1.textContent = "Ingresá el legajo.";
-        msg1.classList.add("error");
-      }
+      if (msg1) { msg1.textContent = "Ingresá el legajo."; msg1.classList.add("error"); }
       return null;
     }
-
     const codes = [c1, c2].filter(Boolean);
     if (!codes.length) {
-      if (msg1) {
-        msg1.textContent = "Ingresá al menos 1 código.";
-        msg1.classList.add("error");
-      }
+      if (msg1) { msg1.textContent = "Ingresá al menos 1 código."; msg1.classList.add("error"); }
       return null;
     }
 
@@ -128,7 +112,6 @@
           });
         }
       } else {
-        // si no está mapeado, lo mostramos al final
         rows.push({ orden: 999999, sector: "SIN MAPEO", codArt: code });
       }
     }
@@ -144,13 +127,10 @@
   }
 
   function renderTab2() {
-    const line = $("legajoLine");
-    const pill = $("countPill");
-    if (line) line.textContent = "Legajo: " + STATE.legajo;
-    if (pill) pill.textContent = `${STATE.rows.length} filas`;
+    $("legajoLine").textContent = "Legajo: " + STATE.legajo;
+    $("countPill").textContent = `${STATE.rows.length} filas`;
 
     const tbody = $("tbody");
-    if (!tbody) return;
     tbody.innerHTML = "";
 
     for (const r of STATE.rows) {
@@ -198,19 +178,15 @@
       tr.appendChild(tdP);
       tr.appendChild(tdC);
       tr.appendChild(tdS);
-
       tbody.appendChild(tr);
     }
   }
 
   function renderTab3() {
-    const line = $("legajoLine3");
-    const pill = $("countPill3");
-    if (line) line.textContent = "Legajo: " + STATE.legajo;
-    if (pill) pill.textContent = `${STATE.codes.length} códigos`;
+    $("legajoLine3").textContent = "Legajo: " + STATE.legajo;
+    $("countPill3").textContent = `${STATE.codes.length} códigos`;
 
     const tbody = $("tbody3");
-    if (!tbody) return;
     tbody.innerHTML = "";
 
     for (const code of STATE.codes) {
@@ -226,7 +202,7 @@
         const inp = document.createElement("input");
         inp.type = "tel";
         inp.inputMode = "numeric";
-        inp.maxLength = 3; // 3 dígitos
+        inp.maxLength = 3;
         inp.placeholder = "0";
         inp.value = val || "";
         return inp;
@@ -263,7 +239,6 @@
       tr.appendChild(tdPA);
       tr.appendChild(tdPFC);
       tr.appendChild(tdMT);
-
       tbody.appendChild(tr);
     }
   }
@@ -303,43 +278,30 @@
 
   async function sendDailyFinal() {
     const msg = $("msg3");
-    if (msg) {
-      msg.textContent = "";
-      msg.className = "msg";
-    }
+    if (msg) { msg.textContent = ""; msg.className = "msg"; }
 
-    try {
-      showOverlay(true, "Enviando…", "Guardando todo (Paso 2 + Paso 3)");
-      await fetch(APP_SCRIPT_URL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify(buildDailyPayload()),
-      });
-      await new Promise((r) => setTimeout(r, 700));
-      showOverlay(false);
-      resetAll();
-      show("home");
-    } catch (e) {
-      showOverlay(false);
-      if (msg) {
-        msg.textContent = "Error enviando: " + (e?.message || e);
-        msg.classList.add("error");
-      }
-    }
+    showOverlay(true, "Enviando…", "Guardando todo (Paso 2 + Paso 3)");
+    await fetch(APP_SCRIPT_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(buildDailyPayload()),
+    });
+    await new Promise((r) => setTimeout(r, 700));
+    showOverlay(false);
+
+    resetAll();
+    show("home");
   }
 
   function resetAll() {
-    if ($("legajo")) $("legajo").value = "";
-    if ($("cod1")) $("cod1").value = "";
-    if ($("cod2")) $("cod2").value = "";
+    $("legajo").value = "";
+    $("cod1").value = "";
+    $("cod2").value = "";
 
     ["msg1", "msg1b", "msgSend", "msg3"].forEach((id) => {
       const el = $(id);
-      if (el) {
-        el.textContent = "";
-        el.className = "msg";
-      }
+      if (el) { el.textContent = ""; el.className = "msg"; }
     });
 
     STATE.legajo = "";
@@ -350,22 +312,12 @@
 
     setStatus();
     show("tab1");
-    $("legajo")?.focus?.();
+    $("legajo").focus();
   }
 
-  // Eventos Diario
-  $("legajo")?.addEventListener("input", () => {
-    $("legajo").value = onlyDigits($("legajo").value).slice(0, 3);
-    setStatus();
-  });
-  $("cod1")?.addEventListener("input", () => {
-    $("cod1").value = normalizeCode($("cod1").value).slice(0, 4);
-    setStatus();
-  });
-  $("cod2")?.addEventListener("input", () => {
-    $("cod2").value = normalizeCode($("cod2").value).slice(0, 4);
-    setStatus();
-  });
+  $("legajo")?.addEventListener("input", () => { $("legajo").value = onlyDigits($("legajo").value).slice(0, 3); setStatus(); });
+  $("cod1")?.addEventListener("input", () => { $("cod1").value = normalizeCode($("cod1").value).slice(0, 4); setStatus(); });
+  $("cod2")?.addEventListener("input", () => { $("cod2").value = normalizeCode($("cod2").value).slice(0, 4); setStatus(); });
 
   $("limpiarBtn")?.addEventListener("click", resetAll);
 
@@ -384,49 +336,37 @@
   $("volverBtn")?.addEventListener("click", () => show("tab1"));
 
   $("resetFillsBtn")?.addEventListener("click", () => {
-    for (const k of Object.keys(STATE.fills)) {
-      STATE.fills[k] = { pilas: "", cjasXPila: "", cjasSueltas: "" };
-    }
+    for (const k of Object.keys(STATE.fills)) STATE.fills[k] = { pilas: "", cjasXPila: "", cjasSueltas: "" };
     renderTab2();
     const m = $("msgSend");
-    if (m) {
-      m.textContent = "Reseteado.";
-      m.className = "msg ok";
-    }
+    if (m) { m.textContent = "Reseteado."; m.className = "msg ok"; }
   });
 
-  $("irPaso3Btn")?.addEventListener("click", () => {
-    renderTab3();
-    show("tab3");
-  });
-
+  $("irPaso3Btn")?.addEventListener("click", () => { renderTab3(); show("tab3"); });
   $("volverBtn3")?.addEventListener("click", () => show("tab2"));
 
   $("reset3Btn")?.addEventListener("click", () => {
     for (const c of STATE.codes) STATE.resumen[c] = { pickings: "", pfc: "", transito: "" };
     renderTab3();
     const m = $("msg3");
-    if (m) {
-      m.textContent = "Reseteado.";
-      m.className = "msg ok";
-    }
+    if (m) { m.textContent = "Reseteado."; m.className = "msg ok"; }
   });
 
   $("enviarFinalBtn")?.addEventListener("click", sendDailyFinal);
 
   // =========================
-  // CONTEO GENERAL (SOLO usa sectores reales de la planimetría)
+  // CONTEO GENERAL (solo sectores reales del MAP)
   // =========================
   const GEN = {
     pageSize: 30,
-    conteoId: "",
+    fecha: "",
     legajo: "",
-    lists: { sin: [], con: [] },  // pages de sectores (strings)
-    status: { sin: [], con: [] }, // pendiente/en_curso/terminado
+    rol: "", // "sin" | "con"
+    lists: { sin: [], con: [] },
+    status: { sin: [], con: [] },
     current: { rol: "", idx: -1, page: [] },
   };
 
-  // Regla escalera sobre SECTOR real (A tiene 5, resto 4)
   function isConEscaleraFromSector(sectorStr) {
     const s = String(sectorStr || "").trim().toUpperCase();
     const m = s.match(/^([A-Z])\s*(\d+)$/);
@@ -437,10 +377,10 @@
 
     if (letter === "A") {
       const r = (n - 1) % 5;
-      return r === 3 || r === 4; // 4 y 5 con escalera
+      return r === 3 || r === 4;
     }
     const r = (n - 1) % 4;
-    return r === 3; // 4 con escalera
+    return r === 3;
   }
 
   function getAllSectorsFromPlanimetria() {
@@ -478,18 +418,13 @@
 
   function ensureGeneralLists() {
     const sectors = getAllSectorsFromPlanimetria().sort(sortSectorsNatural);
-
     const sin = [];
     const con = [];
-    for (const sec of sectors) {
-      if (isConEscaleraFromSector(sec)) con.push(sec);
-      else sin.push(sec);
-    }
+    for (const sec of sectors) (isConEscaleraFromSector(sec) ? con : sin).push(sec);
 
     GEN.lists.sin = chunk(sin, GEN.pageSize);
     GEN.lists.con = chunk(con, GEN.pageSize);
 
-    // inicializa si estaba vacío
     if (!GEN.status.sin.length) GEN.status.sin = Array(GEN.lists.sin.length).fill("pendiente");
     if (!GEN.status.con.length) GEN.status.con = Array(GEN.lists.con.length).fill("pendiente");
   }
@@ -500,149 +435,132 @@
     return "⬜";
   }
 
-  async function postJSONRead(payload) {
-    // Para leer estado/reserva necesitamos CORS en Apps Script
-    const res = await fetch(APP_SCRIPT_URL, {
+  async function tryReadJSON(payload) {
+    try {
+      const res = await fetch(APP_SCRIPT_URL, {
+        method: "POST",
+        mode: "cors",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload),
+      });
+      const txt = await res.text();
+      return JSON.parse(txt);
+    } catch {
+      return null;
+    }
+  }
+
+  async function fireAndForget(payload) {
+    await fetch(APP_SCRIPT_URL, {
       method: "POST",
-      mode: "cors",
+      mode: "no-cors",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
       body: JSON.stringify(payload),
     });
-    const txt = await res.text();
-    try { return JSON.parse(txt); }
-    catch { return { ok: false, error: "Respuesta no JSON", raw: txt }; }
   }
 
-  function renderTracker() {
-    const sinBox = $("g_list_sin");
-    const conBox = $("g_list_con");
-    if (!sinBox || !conBox) return;
+  function renderRolLists() {
+    const wrap = $("g_lists_wrap");
+    const list = $("g_list");
+    const title = $("g_list_title");
+    const pill = $("g_list_pill");
+    if (!wrap || !list || !title || !pill) return;
 
-    sinBox.innerHTML = "";
-    conBox.innerHTML = "";
+    wrap.style.display = GEN.rol ? "" : "none";
+    if (!GEN.rol) return;
 
-    const countDone = (arr) => arr.filter((s) => s === "terminado").length;
-    if ($("g_sinPill")) $("g_sinPill").textContent = `${countDone(GEN.status.sin)}/${GEN.status.sin.length}`;
-    if ($("g_conPill")) $("g_conPill").textContent = `${countDone(GEN.status.con)}/${GEN.status.con.length}`;
+    const pages = GEN.lists[GEN.rol];
+    const stArr = GEN.status[GEN.rol];
 
-    const renderList = (rol, box) => {
-      GEN.lists[rol].forEach((page, idx) => {
-        const st = GEN.status[rol][idx] || "pendiente";
-        const div = document.createElement("div");
-        div.className = "trackerRow" + (st !== "pendiente" ? " disabled" : "");
+    title.textContent = GEN.rol === "sin" ? "Hojas SIN escalera" : "Hojas CON escalera";
+    const done = stArr.filter((x) => x === "terminado").length;
+    pill.textContent = `${done}/${stArr.length}`;
 
-        const first = page[0] || "—";
-        const last = page[page.length - 1] || "—";
+    list.innerHTML = "";
+    pages.forEach((page, idx) => {
+      const st = stArr[idx] || "pendiente";
+      const first = page[0] || "—";
+      const last = page[page.length - 1] || "—";
 
-        div.innerHTML = `
-          <div class="left">
-            <div class="name">Hoja ${idx + 1}</div>
-            <div class="sub">${first} … ${last}</div>
-          </div>
-          <div class="badge">${badge(st)}</div>
-        `;
+      const row = document.createElement("div");
+      row.className = "trackerRow" + (st !== "pendiente" ? " disabled" : "");
+      row.innerHTML = `
+        <div class="left">
+          <div class="name">Hoja ${idx + 1}</div>
+          <div class="sub">${first} … ${last}</div>
+        </div>
+        <div class="badge">${badge(st)}</div>
+      `;
 
-        if (st === "pendiente") div.addEventListener("click", () => openSheet(rol, idx));
-        box.appendChild(div);
-      });
-    };
-
-    renderList("sin", sinBox);
-    renderList("con", conBox);
+      if (st === "pendiente") row.addEventListener("click", () => openSheet(GEN.rol, idx));
+      list.appendChild(row);
+    });
   }
 
   async function loadStatus() {
-    const m = $("g_msg");
-    if (m) {
-      m.textContent = "";
-      m.className = "msg";
-    }
+    const msg = $("g_msg");
+    if (msg) { msg.textContent = ""; msg.className = "msg"; }
 
     GEN.legajo = onlyDigits($("g_legajo")?.value).slice(0, 3);
-    GEN.conteoId = normalizeCode($("g_conteoId")?.value).slice(0, 16);
+    GEN.fecha = $("g_fecha")?.value || "";
 
-    if (!GEN.legajo) {
-      if (m) { m.textContent = "Ingresá legajo."; m.classList.add("error"); }
-      return;
-    }
-    if (!GEN.conteoId) {
-      if (m) { m.textContent = "Ingresá ID Conteo."; m.classList.add("error"); }
-      return;
-    }
+    if (!GEN.legajo) { if (msg) { msg.textContent = "Ingresá legajo."; msg.classList.add("error"); } return; }
+    if (!GEN.fecha)  { if (msg) { msg.textContent = "Elegí fecha conteo."; msg.classList.add("error"); } return; }
 
     ensureGeneralLists();
 
-    try {
-      showOverlay(true, "Cargando…", "Leyendo estado del conteo");
-      const resp = await postJSONRead({ kind: "general_status", conteoId: GEN.conteoId });
-      showOverlay(false);
+    showOverlay(true, "Cargando…", "Leyendo estado del conteo");
+    const resp = await tryReadJSON({ kind: "general_status", fechaConteo: GEN.fecha });
+    showOverlay(false);
 
-      if (!resp || !resp.ok) {
-        if (m) { m.textContent = resp?.error || "No pude leer el estado (CORS)."; m.classList.add("error"); }
-        renderTracker(); // igual muestra pendiente
-        return;
-      }
-
-      // Si el Apps Script devuelve arrays, los uso.
+    if (resp && resp.ok) {
       if (Array.isArray(resp.sin)) GEN.status.sin = resp.sin;
       if (Array.isArray(resp.con)) GEN.status.con = resp.con;
-
-      renderTracker();
-      if (m) { m.textContent = "Listo."; m.className = "msg ok"; }
-    } catch (e) {
-      showOverlay(false);
-      if (m) {
-        m.textContent = "No pude leer estado (revisar CORS en Apps Script).";
-        m.classList.add("error");
-      }
-      renderTracker();
+      if (msg) { msg.textContent = "Listo."; msg.className = "msg ok"; }
+    } else {
+      if (msg) { msg.textContent = "No pude leer estado (CORS). Igual podés contar; queda todo como pendiente."; msg.className = "msg"; }
     }
+
+    renderRolLists();
   }
 
   async function openSheet(rol, idx) {
-    const m = $("g_msg");
-    if (m) { m.textContent = ""; m.className = "msg"; }
+    showOverlay(true, "Reservando…", "Marcando hoja en curso");
 
-    try {
-      showOverlay(true, "Reservando…", "Marcando hoja en curso");
-      const r = await postJSONRead({
+    const resp = await tryReadJSON({
+      kind: "general_reserve",
+      fechaConteo: GEN.fecha,
+      legajo: GEN.legajo,
+      rol,
+      sheetIndex: idx,
+    });
+
+    if (!resp || !resp.ok) {
+      await fireAndForget({
         kind: "general_reserve",
-        conteoId: GEN.conteoId,
+        fechaConteo: GEN.fecha,
         legajo: GEN.legajo,
         rol,
         sheetIndex: idx,
       });
-      showOverlay(false);
-
-      if (!r || !r.ok) {
-        if (m) { m.textContent = r?.error || "No se pudo reservar."; m.classList.add("error"); }
-        return;
-      }
-
-      GEN.status[rol][idx] = "en_curso";
-      renderTracker();
-
-      GEN.current = { rol, idx, page: GEN.lists[rol][idx] };
-      renderGSheet();
-      show("gSheet");
-    } catch (e) {
-      showOverlay(false);
-      if (m) {
-        m.textContent = "No se pudo reservar (revisar CORS en Apps Script).";
-        m.classList.add("error");
-      }
     }
+
+    showOverlay(false);
+
+    GEN.status[rol][idx] = "en_curso";
+    GEN.current = { rol, idx, page: GEN.lists[rol][idx] };
+    renderGSheet();
+    show("gSheet");
   }
 
   function renderGSheet() {
     const { rol, idx, page } = GEN.current;
 
-    if ($("g_title")) $("g_title").textContent = `${rol === "sin" ? "Sin escalera" : "Con escalera"} · Hoja ${idx + 1}`;
-    if ($("g_sub")) $("g_sub").textContent = `Legajo ${GEN.legajo} · Conteo ${GEN.conteoId}`;
-    if ($("g_progress")) $("g_progress").textContent = `${idx + 1}/${GEN.lists[rol].length}`;
+    $("g_title").textContent = `${rol === "sin" ? "Sin escalera" : "Con escalera"} · Hoja ${idx + 1}`;
+    $("g_sub").textContent = `Legajo ${GEN.legajo} · ${GEN.fecha}`;
+    $("g_progress").textContent = `${idx + 1}/${GEN.lists[rol].length}`;
 
     const tb = $("g_tbody");
-    if (!tb) return;
     tb.innerHTML = "";
 
     page.forEach((sec) => {
@@ -687,41 +605,32 @@
       cantidad: onlyDigits(document.getElementById("g_" + sec)?.value || "0"),
     }));
 
-    try {
-      showOverlay(true, "Enviando…", "Guardando hoja del conteo general");
-      await fetch(APP_SCRIPT_URL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({
-          kind: "general_page",
-          ts: new Date().toISOString(),
-          conteoId: GEN.conteoId,
-          legajo: GEN.legajo,
-          rol,
-          pageIndex: idx,
-          pageSize: GEN.pageSize,
-          rows,
-        }),
-      });
+    showOverlay(true, "Enviando…", "Guardando hoja del conteo general");
+    await fireAndForget({
+      kind: "general_page",
+      ts: new Date().toISOString(),
+      fechaConteo: GEN.fecha,
+      legajo: GEN.legajo,
+      rol,
+      pageIndex: idx,
+      pageSize: GEN.pageSize,
+      rows,
+    });
+    showOverlay(false);
 
-      await new Promise((r) => setTimeout(r, 700));
-      showOverlay(false);
-
-      GEN.status[rol][idx] = "terminado";
-      renderTracker();
-      show("gTracker");
-    } catch (e) {
-      showOverlay(false);
-      if (m) { m.textContent = "Error enviando."; m.classList.add("error"); }
-    }
+    GEN.status[rol][idx] = "terminado";
+    show("gTracker");
+    renderRolLists();
   }
 
-  $("g_backHome")?.addEventListener("click", () => show("home"));
   $("g_load")?.addEventListener("click", loadStatus);
+  $("g_backHome")?.addEventListener("click", () => show("home"));
   $("g_backTracker")?.addEventListener("click", () => show("gTracker"));
   $("g_reset")?.addEventListener("click", resetGSheetInputs);
   $("g_send")?.addEventListener("click", sendGSheet);
+
+  $("g_rol_sin")?.addEventListener("click", () => { GEN.rol = "sin"; renderRolLists(); });
+  $("g_rol_con")?.addEventListener("click", () => { GEN.rol = "con"; renderRolLists(); });
 
   // init
   setStatus();
